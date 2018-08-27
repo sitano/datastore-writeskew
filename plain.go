@@ -1,5 +1,5 @@
-// The program shows the behavior of simple classic write-skew anomaly example
-// in which 2 transaction read some data and then perform disjoint writes.
+// The program shows a behavior of a simple, classic write-skew anomaly example
+// in which two transactions read some data and then perform disjoint writes.
 //
 // Impl:
 //     - x = y = 0
