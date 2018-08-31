@@ -7,7 +7,7 @@
 //     - tx A proceeds and reads y and checks invariant
 //
 // Results:
-//     - rpc error: code = Aborted desc = too much contention on these datastore entities. please try again. entity group key: (app=e~test!test, test_read_skew, "x")
+//     - rpc error: code = Aborted desc = too much contention on these datastore entities. please try again. entity group key: (app=e~test!test, test_read_skew, 1)
 //
 // Run:
 //     $ env DATASTORE_PROJECT_ID=test DATASTORE_NAMESPACE=test ./rs-plain
@@ -27,12 +27,17 @@ var ProjectID = os.Getenv("DATASTORE_PROJECT_ID")
 var Namespace = os.Getenv("DATASTORE_NAMESPACE")
 
 const Kind = "test_read_skew"
+const DatasetSize = int64(1024 * 1024)
 
 type Entity struct {
-	Count int `datastore:"count,noindex"`
+	Count int    `datastore:"count,noindex"`
+	Data  []byte `datastore:"data,noindex"`
 }
 
 var clients = make([]*datastore.Client, 2)
+
+var X = int64(1)
+var Y = int64(DatasetSize - 1)
 
 func main() {
 	for i := 0; i < len(clients); i++ {
@@ -46,14 +51,14 @@ func main() {
 	step := 0
 	for {
 		step++
-		fmt.Println("step = ", step)
+		fmt.Println("rs test step = ", step)
 
 		// set initial state
 		_, err := clients[0].RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-			if err := write(tx, "x", &Entity{Count: 100}); err != nil {
+			if err := write(tx, X, &Entity{Count: 100}); err != nil {
 				return err
 			}
-			if err := write(tx, "y", &Entity{Count: 0}); err != nil {
+			if err := write(tx, Y, &Entity{Count: 0}); err != nil {
 				return err
 			}
 			return nil
@@ -71,7 +76,7 @@ func main() {
 }
 
 func txA(tx *datastore.Transaction) error {
-	x, err := read(tx, "x")
+	x, err := read(tx, X)
 	if err != nil {
 		return fmt.Errorf("read tx: error reading x: %s", err.Error())
 	}
@@ -87,7 +92,7 @@ func txA(tx *datastore.Transaction) error {
 	}()
 	ws.Wait()
 
-	y, err := read(tx, "y")
+	y, err := read(tx, Y)
 	if err != nil {
 		return fmt.Errorf("read tx: error reading y: %s", err.Error())
 	}
@@ -102,11 +107,11 @@ func txA(tx *datastore.Transaction) error {
 }
 
 func txB(tx *datastore.Transaction) error {
-	x, err := read(tx, "x")
+	x, err := read(tx, X)
 	if err != nil {
 		return err
 	}
-	y, err := read(tx, "y")
+	y, err := read(tx, Y)
 	if err != nil {
 		return err
 	}
@@ -116,26 +121,26 @@ func txB(tx *datastore.Transaction) error {
 		panic("invalid invariant")
 	}
 
-	if err = write(tx, "x", &Entity{Count: x.Count - 100}); err != nil {
+	if err = write(tx, X, &Entity{Count: x.Count - 100}); err != nil {
 		return nil
 	}
-	if err = write(tx, "y", &Entity{Count: y.Count + 100}); err != nil {
+	if err = write(tx, Y, &Entity{Count: y.Count + 100}); err != nil {
 		return nil
 	}
 
 	return nil
 }
 
-func write(tx *datastore.Transaction, key string, e *Entity) error {
-	k := datastore.NameKey(Kind, key, nil)
+func write(tx *datastore.Transaction, key int64, e *Entity) error {
+	k := datastore.IDKey(Kind, key, nil)
 	k.Namespace = Namespace
 	_, err := tx.Put(k, e)
 	return err
 }
 
-func read(tx *datastore.Transaction, key string) (*Entity, error) {
+func read(tx *datastore.Transaction, key int64) (*Entity, error) {
 	var e = &Entity{}
-	k := datastore.NameKey(Kind, key, nil)
+	k := datastore.IDKey(Kind, key, nil)
 	k.Namespace = Namespace
 	return e, tx.Get(k, e)
 }

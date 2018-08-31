@@ -12,3 +12,4 @@ Research of various behaviors of the Google Cloud Datastore database transaction
 
 - `ws-plain.go` small dataset of 2 keys. reading 2 keys and making disjoint writes to them with an increment. does not show ws.
 - `rs-plain.go` small dataset of 2 keys. 1 tx does prefix reads checking for invariant, another tx commits a change in the middle of the first one. does not show rs due to the: _rpc error: code = Aborted desc = too much contention on these datastore entities. please try again. entity group key: (app=e~test!test, test_read_skew, "x")_.
+- `rs-1g.go` dataset of 1M of entities 1024B size. does not show read skew due to the: _rpc error: code = Aborted desc = too much contention on these datastore entities. please try again. entity group key: (app=e~test!test, test_read_skew, 1)_. I must guess here datastore implements 2 phase locking (2PL) in order to implement transaction isolation.
