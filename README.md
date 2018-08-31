@@ -10,4 +10,5 @@ Research of various behaviors of the Google Cloud Datastore database transaction
 
 # tests
 
-- `plain.go` reading 2 keys and making disjoint writes to them with an increment. does not show ws.
+- `ws-plain.go` small dataset of 2 keys. reading 2 keys and making disjoint writes to them with an increment. does not show ws.
+- `rs-plain.go` small dataset of 2 keys. 1 tx does prefix reads checking for invariant, another tx commits a change in the middle of the first one. does not show rs due to the: _rpc error: code = Aborted desc = too much contention on these datastore entities. please try again. entity group key: (app=e~test!test, test_read_skew, "x")_.

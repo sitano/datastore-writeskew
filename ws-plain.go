@@ -11,7 +11,7 @@
 //       something and restarts it.
 //
 // Run:
-//     $ env DATASTORE_PROJECT_ID=test DATASTORE_NAMESPACE=test ./plain
+//     $ env DATASTORE_PROJECT_ID=test DATASTORE_NAMESPACE=test ./ws-plain
 
 package main
 
