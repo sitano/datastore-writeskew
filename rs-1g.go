@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/datastore"
 )
@@ -81,6 +82,8 @@ func txA(tx *datastore.Transaction) error {
 		return fmt.Errorf("read tx: error reading x: %s", err.Error())
 	}
 
+	time.Sleep(3 * time.Second)
+
 	var ws sync.WaitGroup
 	ws.Add(1)
 	go func() {
@@ -91,6 +94,8 @@ func txA(tx *datastore.Transaction) error {
 		ws.Done()
 	}()
 	ws.Wait()
+
+	time.Sleep(3 * time.Second)
 
 	y, err := read(tx, Y)
 	if err != nil {
