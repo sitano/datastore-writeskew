@@ -85,6 +85,36 @@ Results: does not demonstrate read-skew anomaly due to the:
 Datastore detects read-skew when reading second variable Y in reading
 transaction B right after the writing transaction A(X, Y) commits.
 
+## r-block-w.go
+
+The program tries to exercise reads blocking writes behavior and
+checks repeatable reads isolation.
+
+Transaction A reads a variable, after what the B writes to that variable
+and then both commits.
+
+Results: Repeatable reads are present. Reads does not block writes.
+
+Log:
+
+```
+    step =  1
+    A: start
+    B: start
+    B: write x= 1
+    B: done
+    A: read x0= 0 x1= 0
+    A: done
+    step =  2
+    A: start
+    B: start
+    B: write x= 2
+    B: done
+    A: read x0= 1 x1= 1
+    A: done
+    ...
+```
+
 ## Results
 
 The tests for detecting write-skew and read-skew anomalies did not
